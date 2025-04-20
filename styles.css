@@ -1081,3 +1081,27 @@ h1 {
     justify-content: center;
     align-items: center;
 }
+
+
+
+
+/* Mosaic View styles */
+.mosaic-view .custom-map-marker .marker-icon {
+    border: none !important; /* Remove any border */
+    box-shadow: none !important; /* Remove any shadow */
+    border-radius: 0 !important; /* Remove circular shape, make it rectangular */
+    background-color: transparent !important; /* Ensure background is transparent */
+    background-size: cover !important; /* Ensure image fully covers the marker */
+    background-position: center !important; /* Center the image */
+}
+
+.mosaic-view .custom-map-marker .marker-pulse {
+    display: none !important; /* Hide the pulse effect */
+}
+
+.basic-mosaic-style .marker-icon {
+    border: none !important; /* Remove any border */
+    box-shadow: none !important; /* Remove any shadow */
+    border-radius: 0 !important; /* Remove circular shape, make it rectangular */
+    background-position: center !important; /* Center the image */
+}

@@ -18,10 +18,69 @@ constructor() {
     this.initToast();
     this.initMosaicAnalyzer();
     this.initMapScreenshot();
-    this.initMapScreenshot(); // Add this line
+    this.initMapScreenshot();
+
+    // Initialize the Mosaic View button
+    this.initMosaicViewButton();
 
 }
 
+/**
+     * Toggle between standard map view and Mosaic View
+     */
+    toggleMosaicView() {
+    // Ensure map and markers are initialized
+    if (!this.map || !this.markers) {
+        console.error("Map or markers are not initialized. Cannot toggle Mosaic View.");
+        this.showToast("Error", "Map is not initialized. Cannot toggle Mosaic View.", "error");
+        return;
+    }
+
+    // Toggle the CSS class on the map container
+    const isMosaicView = this.map._container.classList.toggle('mosaic-view');
+
+    if (isMosaicView) {
+        console.log("Mosaic View activated.");
+        // Apply "Mosaic View" styles to all markers
+        this.markers.forEach(marker => {
+            const markerElement = marker.getElement();
+            if (markerElement) {
+                console.log("Applying basic-mosaic-style to marker:", markerElement);
+                markerElement.classList.add('basic-mosaic-style');
+            } else {
+                console.warn("Marker element not found for marker:", marker);
+            }
+        });
+        this.showToast('Mosaic View', 'Mosaic view activated.', 'success');
+    } else {
+        console.log("Standard View activated.");
+        // Revert to standard styles
+        this.markers.forEach(marker => {
+            const markerElement = marker.getElement();
+            if (markerElement) {
+                console.log("Removing basic-mosaic-style from marker:", markerElement);
+                markerElement.classList.remove('basic-mosaic-style');
+            } else {
+                console.warn("Marker element not found for marker:", marker);
+            }
+        });
+        this.showToast('Standard View', 'Reverted to standard map view.', 'info');
+    }
+}
+
+    /**
+     * Add event listener to the Mosaic View button
+     */
+    initMosaicViewButton() {
+        const mosaicViewButton = document.getElementById('toggleMosaicView');
+        if (!mosaicViewButton) {
+            console.error("Mosaic View button not found in the DOM.");
+            return;
+        }
+
+        // Attach click event listener
+        mosaicViewButton.addEventListener('click', () => this.toggleMosaicView());
+    }
     /**
      * Initialize the map with custom styling
      */
@@ -619,46 +678,120 @@ initMapScreenshot() {
  */
 captureMapView() {
     try {
-        // Get the map element
-        const mapElement = document.getElementById('map');
+        // Get the current map dimensions and bounds
+        const mapSize = this.map.getSize();
+        const mapBounds = this.map.getBounds();
 
-        // Use html2canvas for reliable capture
-        html2canvas(mapElement, {
+        // Create a canvas for the export
+        const canvas = document.createElement('canvas');
+        canvas.width = mapSize.x;
+        canvas.height = mapSize.y;
+        const ctx = canvas.getContext('2d');
+
+        // First, capture the base map using html2canvas
+        html2canvas(document.getElementById('map'), {
             useCORS: true,
             allowTaint: true,
-            scale: 2  // Higher resolution
-        }).then(canvas => {
-            // Create a timestamp for the filename
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            const filename = `geoimage-map-${timestamp}.png`;
+            scale: 1
+        }).then(mapCanvas => {
+            // Draw the base map on our canvas
+            ctx.drawImage(mapCanvas, 0, 0);
 
-            // Convert canvas to blob
-            canvas.toBlob(blob => {
-                // Create download link
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.download = filename;
-                link.href = url;
+            // Create an array of promises to load all images
+            const imagePromises = this.images.map(imageData => {
+                return new Promise((resolve, reject) => {
+                    // Convert geo coordinates to pixel positions on the canvas
+                    const latLng = L.latLng(imageData.latitude, imageData.longitude);
+                    const pixelPoint = this.map.latLngToContainerPoint(latLng);
 
-                // Trigger download
-                document.body.appendChild(link);
-                link.click();
+                    // Create image object to draw
+                    const img = new Image();
+                    img.crossOrigin = "Anonymous";
+                    img.onload = () => {
+                        // Calculate dimensions while maintaining aspect ratio
+                        const MAX_SIZE = 150; // Maximum width/height for each image
+                        let width = img.width;
+                        let height = img.height;
 
-                // Clean up
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                        // Resize if needed while maintaining aspect ratio
+                        if (width > height) {
+                            if (width > MAX_SIZE) {
+                                height = height * (MAX_SIZE / width);
+                                width = MAX_SIZE;
+                            }
+                        } else {
+                            if (height > MAX_SIZE) {
+                                width = width * (MAX_SIZE / height);
+                                height = MAX_SIZE;
+                            }
+                        }
+
+                        // Draw image centered at its geo position
+                        ctx.drawImage(
+                            img,
+                            pixelPoint.x - width/2,
+                            pixelPoint.y - height/2,
+                            width,
+                            height
+                        );
+
+                        // Add a border
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(pixelPoint.x - width/2, pixelPoint.y - height/2, width, height);
+
+                        resolve();
+                    };
+
+                    img.onerror = () => {
+                        console.warn(`Failed to load image: ${imageData.name}`);
+                        resolve(); // Resolve anyway to not block other images
+                    };
+
+                    img.src = imageData.dataUrl;
+                });
+            });
+
+            // Wait for all images to be drawn
+            Promise.all(imagePromises).then(() => {
+                // Add watermark
+                this.addWatermarkToCanvas(canvas);
+
+                // Generate timestamp for filename
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                const filename = `geoimage-mosaic-${timestamp}.png`;
+
+                // Convert to blob and trigger download
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+
+                    // Clean up
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                        this.hideLoading();
+                        this.showToast('Export Complete', 'Map mosaic exported successfully', 'success');
+                    }, 100);
+                }, 'image/png');
+            }).catch(error => {
+                console.error('Error drawing images:', error);
                 this.hideLoading();
-                this.showToast('Export Complete', 'Map exported successfully', 'success');
-            }, 'image/png');
-        }).catch(err => {
-            console.error("Canvas export error:", err);
+                this.showToast('Export Failed', 'Error generating mosaic map', 'error');
+            });
+        }).catch(error => {
+            console.error('Error capturing map:', error);
             this.hideLoading();
-            this.showToast('Export Failed', 'Could not generate map image', 'error');
+            this.showToast('Export Failed', 'Error capturing map view', 'error');
         });
     } catch (error) {
         console.error('Map export error:', error);
         this.hideLoading();
-        this.showToast('Export Failed', 'Error exporting map', 'error');
+        this.showToast('Export Failed', 'Failed to export map', 'error');
     }
 }
 
@@ -787,6 +920,10 @@ processMapCanvas(canvas) {
     }
 }
 
+
+
+
+
 /**
  * Add a subtle watermark to the exported map
  * @param {HTMLCanvasElement} canvas - The canvas to add watermark to
@@ -815,6 +952,13 @@ addWatermarkToCanvas(canvas) {
         console.warn('Could not add watermark to export:', e);
     }
 }
+
+
+
+
+
+
+
 
 
     /**
@@ -1491,4 +1635,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(style);
+
+
+
 });
