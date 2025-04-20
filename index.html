@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js">
+
 </head>
 <body>
     <div class="container">
@@ -29,6 +31,9 @@
                 </button>
                 <button id="resetView" class="button secondary">
                     <i class="fas fa-compress-arrows-alt"></i> Reset View
+                </button>
+                <button id="downloadMap" class="button secondary">
+                    <i class="fas fa-download"></i> Export Map
                 </button>
                 <div class="search-container">
                     <input type="text" id="searchInput" placeholder="Search images by filename...">
@@ -145,7 +150,10 @@
 
                     <div class="action-buttons">
                         <button id="showOverlapGroups" class="button secondary">
-                            <i class="fas fa-object-group"></i> Show Overlap Groups
+                            <i class="fas fa-object-group"></i> Show All Groups
+                        </button>
+                        <button id="selectOverlapGroup" class="button secondary">
+                            <i class="fas fa-list"></i> Select Group
                         </button>
                         <button id="showHeatmap" class="button secondary">
                             <i class="fas fa-fire"></i> Show Density Heatmap
@@ -175,9 +183,14 @@
             </button>
         </div>
     </div>
-
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
+    <!-- Added libraries for map export functionality -->
+    <script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="mosaic-analyzer.js"></script>
     <script src="script.js"></script>
 </body>
