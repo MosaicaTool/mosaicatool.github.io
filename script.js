@@ -22,9 +22,27 @@ constructor() {
 
     // Initialize the Mosaic View button
     this.initMosaicViewButton();
-
+    // Show empty state on startup
+    this.showEmptyState();
 }
 
+
+    // Add this new method
+    showEmptyState() {
+    const mapOverlay = document.getElementById('mapOverlay');
+    const dragText = mapOverlay.querySelector('.drag-text');
+
+    mapOverlay.classList.add('empty-state');
+    dragText.innerHTML = `
+        <i class="fas fa-cloud-upload-alt"></i>
+        <div>No Images Loaded</div>
+        <p>Drag and drop your geotagged photos here<br>or click the button below to browse</p>
+        <button class="upload-button" onclick="document.getElementById('imageInput').click()">
+            <i class="fas fa-images"></i>
+            Select Images
+        </button>
+    `;
+}
 /**
      * Toggle between standard map view and Mosaic View
      */
@@ -85,29 +103,76 @@ constructor() {
      * Initialize the map with custom styling
      */
     initMap() {
-        this.map = L.map('map', {
-            zoomControl: false, // We'll add it in a different position
-        }).setView([20, 0], 2);
-        
-        // Add custom styled tile layer
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(this.map);
-        
-        // Add zoom control to the top-right corner
-        L.control.zoom({
-            position: 'topright'
-        }).addTo(this.map);
-        
-        // Add scale control
-        L.control.scale({
-            imperial: false,
-            position: 'bottomleft'
-        }).addTo(this.map);
-    }
+    // Initialize map with default view
+    this.map = L.map('map', {
+        zoomControl: false,
+    }).setView([20, 0], 2);
 
+    // Define base layers
+    this.baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    });
+
+    this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 20,
+        maxNativeZoom: 18  // This prevents the "data not yet available" message
+    });
+
+    // Add satellite layer as default
+    this.satelliteLayer.addTo(this.map);
+
+    // Add custom map controls
+    const mapControls = L.control({position: 'topright'});
+    mapControls.onAdd = (map) => {
+        const container = L.DomUtil.create('div', 'custom-map-controls');
+        container.innerHTML = `
+            <div class="map-type-toggle">
+                <button class="map-type-btn" data-type="default">
+                    <i class="fas fa-map"></i>
+                    <span>Map</span>
+                </button>
+                <button class="map-type-btn active" data-type="satellite">
+                    <i class="fas fa-satellite"></i>
+                    <span>Satellite</span>
+                </button>
+            </div>
+        `;
+
+        // Add click handlers
+        const buttons = container.querySelectorAll('.map-type-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                if (btn.dataset.type === 'satellite') {
+                    map.removeLayer(this.baseLayer);
+                    this.satelliteLayer.addTo(map);
+                } else {
+                    map.removeLayer(this.satelliteLayer);
+                    this.baseLayer.addTo(map);
+                }
+            });
+        });
+
+        return container;
+    };
+    mapControls.addTo(this.map);
+
+    // Add zoom control
+    L.control.zoom({
+        position: 'topright'
+    }).addTo(this.map);
+
+    // Add scale control
+    L.control.scale({
+        imperial: false,
+        position: 'bottomleft'
+    }).addTo(this.map);
+}
     /**
      * Set up all event listeners for the application
      */
@@ -117,6 +182,36 @@ constructor() {
         document.getElementById('resetView').addEventListener('click', () => this.resetView());
         document.getElementById('searchButton').addEventListener('click', () => this.searchImages());
 
+        // Map drag and drop handling
+    const mapOverlay = document.getElementById('mapOverlay');
+    const mapContainer = document.querySelector('.map-container');
+
+    mapContainer.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        if (!mapOverlay.classList.contains('empty-state')) {
+            mapOverlay.classList.add('active');
+        }
+    });
+
+    mapContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+
+    mapContainer.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        if (e.relatedTarget && !mapContainer.contains(e.relatedTarget)) {
+            if (!mapOverlay.classList.contains('empty-state')) {
+                mapOverlay.classList.remove('active');
+            }
+        }
+    });
+
+    mapContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+        mapOverlay.classList.remove('active');
+        const files = Array.from(e.dataTransfer.files);
+        this.processMultipleImages(files);
+    });
         // Preview handling
         const closeButton = document.getElementById('closePreview');
         if (closeButton) {
@@ -179,13 +274,13 @@ constructor() {
                 this.closeImagePreview();
             }
         });
-        
+
         // Toast close button
         document.getElementById('toastClose').addEventListener('click', () => {
             this.hideToast();
         });
     }
-    
+
     /**
      * Initialize the toast notification system
      */
@@ -195,7 +290,7 @@ constructor() {
         this.toastMessage = document.getElementById('toastMessage');
         this.toastTimeout = null;
     }
-    
+
     /**
      * Show a toast notification
      * @param {string} title - Toast title
@@ -208,23 +303,23 @@ constructor() {
         if (this.toastTimeout) {
             clearTimeout(this.toastTimeout);
         }
-        
+
         // Set toast content
         this.toastTitle.textContent = title;
         this.toastMessage.textContent = message;
-        
+
         // Remove existing type classes
         this.toast.classList.remove('success', 'error', 'warning', 'info');
-        
+
         // Add the new type class
         this.toast.classList.add(type);
-        
+
         // Update icon
         const iconElement = this.toast.querySelector('.toast-icon i');
         if (iconElement) {
             iconElement.className = ''; // Clear existing classes
             iconElement.classList.add('fas');
-            
+
             // Add appropriate icon class based on type
             switch(type) {
                 case 'success':
@@ -240,16 +335,16 @@ constructor() {
                     iconElement.classList.add('fa-info-circle');
             }
         }
-        
+
         // Show the toast
         this.toast.classList.add('show');
-        
+
         // Set timeout to hide the toast
         this.toastTimeout = setTimeout(() => {
             this.hideToast();
         }, duration);
     }
-    
+
     /**
      * Hide the toast notification
      */
@@ -264,11 +359,11 @@ constructor() {
     showLoading(message = 'Processing images...') {
         const loadingOverlay = document.getElementById('loadingOverlay');
         const processingStatus = document.getElementById('processingStatus');
-        
+
         if (processingStatus) {
             processingStatus.textContent = message;
         }
-        
+
         loadingOverlay.classList.remove('hidden');
     }
 
@@ -296,7 +391,7 @@ constructor() {
     async handleImageUpload(event) {
         const files = Array.from(event.target.files);
         if (files.length === 0) return;
-        
+
         await this.processMultipleImages(files);
     }
 
@@ -307,22 +402,26 @@ constructor() {
     async processMultipleImages(files) {
         if (!files.length) return;
 
+        // Remove empty state when processing starts
+        const mapOverlay = document.getElementById('mapOverlay');
+        mapOverlay.classList.remove('empty-state');
+
         this.showLoading(`Processing ${files.length} image${files.length > 1 ? 's' : ''}...`);
         const counterElement = document.getElementById('imageProcessCounter');
 
         try {
             let processed = 0;
             let validCount = 0;
-            
+
             for (const file of files) {
                 // Update processing counter
                 processed++;
                 if (counterElement) {
                     counterElement.textContent = `Processing image ${processed} of ${files.length}`;
                 }
-                
+
                 const imageData = await this.processImage(file);
-                
+
                 if (imageData !== null) {
                     validCount++;
                     this.images.push(imageData);
@@ -342,10 +441,10 @@ constructor() {
             if (validCount === 0) {
                 this.showToast('No GPS Data', 'No valid GPS data found in the uploaded images.', 'warning');
             } else {
-                const successMessage = validCount === files.length ? 
+                const successMessage = validCount === files.length ?
                     `Successfully loaded ${validCount} image${validCount > 1 ? 's' : ''}` :
                     `Found location data for ${validCount} of ${files.length} images`;
-                
+
                 this.showToast('Images Loaded', successMessage, 'success');
             }
         } catch (error) {
