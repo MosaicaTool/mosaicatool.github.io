@@ -10,27 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js">
 
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .container {
-            flex: 1;
-        }
-
-        footer {
-            background-color: #f8f8f8;
-            text-align: center;
-            padding: 20px;
-            font-size: 14px;
-            color: #333;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -56,9 +35,11 @@
                 <button id="downloadMap" class="button secondary">
                     <i class="fas fa-download"></i> Export Map
                 </button>
+
                 <button id="toggleMosaicView" class="button secondary">
-                    <i class="fas fa-th-large"></i> Mosaic View
-                </button>
+    <i class="fas fa-th-large"></i> Mosaic View
+</button>
+
                 <div class="search-container">
                     <input type="text" id="searchInput" placeholder="Search images by filename...">
                     <button id="searchButton" class="button">
@@ -76,12 +57,12 @@
             <div class="map-container">
                 <div id="map"></div>
                 <div class="map-overlay" id="mapOverlay">
-                    <div class="drag-text">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <div>Drop Images Here</div>
-                        <p>Drag and drop your geotagged photos to view them on the map</p>
-                    </div>
-                </div>
+    <div class="drag-text">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <div>Drop Images Here</div>
+        <p>Drag and drop your geotagged photos to view them on the map</p>
+    </div>
+</div>
             </div>
 
             <div id="imagePreview" class="image-preview hidden">
@@ -208,16 +189,18 @@
             </button>
         </div>
     </div>
-
-    <footer>
-        לשאלות / יצירת קשר: <a href="mailto:yehudaheller10@gmail.com"> Contact Yehuda Heller</a>
-    </footer>
-
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
+    <!-- Added libraries for map export functionality -->
     <script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
     <script src="mosaic-analyzer.js"></script>
     <script src="script.js"></script>
+<footer>
+  לשאלות / יצירת קשר: <a href="mailto:yehudaheller10@gmail.com">yehudaheller10@gmail.com</a>
+</footer>
 </body>
 </html>
