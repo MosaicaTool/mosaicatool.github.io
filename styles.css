@@ -794,3 +794,313 @@ h1 {
 .overlap-group-label div {
     white-space: nowrap;
 }
+
+
+
+
+
+
+
+
+
+/*  new ujpdate for Heatmap  */
+
+
+/* Modal overlay for group selection */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modal-in 0.3s ease-out;
+}
+
+@keyframes modal-in {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--dark-color);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+/* Group selector styles */
+.group-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.group-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    transition: all 0.2s ease;
+}
+
+.group-item:hover {
+    background-color: #f0f0f0;
+}
+
+.group-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+.group-info {
+    flex: 1;
+}
+
+.group-title {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.group-stats {
+    font-size: 12px;
+    color: #666;
+}
+
+.view-group-btn {
+    padding: 5px 10px !important;
+    font-size: 12px !important;
+}
+
+.selector-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+/* Group details panel */
+.details-panel {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 320px;
+    max-height: 70vh;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transform: translateX(350px);
+    transition: transform 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.details-panel.visible {
+    transform: translateX(0);
+}
+
+.details-panel .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 3px solid var(--primary-color);
+}
+
+.details-panel .panel-header h3 {
+    margin: 0;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.details-panel .panel-content {
+    padding: 15px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.group-stats-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.group-stat {
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.details-panel h4 {
+    margin: 15px 0 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+.group-image-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.group-image-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.group-image-item:hover {
+    background-color: #f0f0f0;
+}
+
+.item-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    margin-right: 10px;
+}
+
+.item-thumbnail.missing {
+    background-color: #ddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.item-thumbnail.missing:after {
+    content: '?';
+    color: #999;
+}
+
+.item-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.item-name {
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--dark-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-coords {
+    font-size: 10px;
+    color: #666;
+}
+
+.panel-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.panel-actions button {
+    flex: 1;
+    font-size: 12px;
+    padding: 8px !important;
+}
+
+/* Highlighted group markers */
+.group-highlight .marker-icon {
+    transform: scale(1.1);
+    z-index: 1000 !important;
+}
+
+.marker-added.group-highlight .marker-icon {
+    transform: scale(1.1);
+}
+
+.overlap-group-label {
+    background: rgba(255, 255, 255, 0.85);
+    border: 2px solid var(--primary-color);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--dark-color);
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+
+
+/* Mosaic View styles */
+.mosaic-view .custom-map-marker .marker-icon {
+    border: 1px solid #000; /* Add a visible border */
+    box-shadow: none; /* Remove unnecessary shadows */
+    background-color: transparent; /* Ensure background is transparent */
+    background-size: cover; /* Ensure the image covers the marker */
+    background-position: center; /* Center the image */
+}
+
+.mosaic-view .custom-map-marker .marker-pulse {
+    display: none; /* Hide the pulse effect */
+}
+
+.basic-mosaic-style .marker-icon {
+    border: 1px solid #000 !important; /* Ensure the border is visible */
+    box-shadow: none !important; /* Remove shadows */
+    background-size: cover !important; /* Ensure the image is displayed fully */
+    background-position: center !important; /* Center the image */
+}
