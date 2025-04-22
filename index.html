@@ -1,202 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoImage Explorer</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoImage Explorer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js">
 
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .container {
+            flex: 1;
+        }
+
+        footer {
+            background-color: #f8f8f8;
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="header-top">
-                <h1><i class="fas fa-globe-americas"></i> GeoImage Explorer</h1>
-                <div class="app-info">
-                    <span class="badge">v1.0</span>
-                    <span>Explore your photos on the map</span>
-                </div>
-            </div>
-            <div class="toolbar">
-                <input type="file" id="imageInput" accept="image/*" multiple class="file-input" />
-                <label for="imageInput" class="button">
-                    <i class="fas fa-images"></i> Load Images
-                </label>
-                <button id="analyzeMosaic" class="button analyze">
-                    <i class="fas fa-th"></i> Analyze Mosaic
-                </button>
-                <button id="resetView" class="button secondary">
-                    <i class="fas fa-compress-arrows-alt"></i> Reset View
-                </button>
-                <button id="downloadMap" class="button secondary">
-                    <i class="fas fa-download"></i> Export Map
-                </button>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1><i class="fas fa-globe-americas"></i> GeoImage Explorer</h1>
+                <div class="app-info">
+                    <span class="badge">v1.0</span>
+                    <span>Explore your photos on the map</span>
+                </div>
+            </div>
+            <div class="toolbar">
+                <input type="file" id="imageInput" accept="image/*" multiple class="file-input" />
+                <label for="imageInput" class="button">
+                    <i class="fas fa-images"></i> Load Images
+                </label>
+                <button id="analyzeMosaic" class="button analyze">
+                    <i class="fas fa-th"></i> Analyze Mosaic
+                </button>
+                <button id="resetView" class="button secondary">
+                    <i class="fas fa-compress-arrows-alt"></i> Reset View
+                </button>
+                <button id="downloadMap" class="button secondary">
+                    <i class="fas fa-download"></i> Export Map
+                </button>
+                <button id="toggleMosaicView" class="button secondary">
+                    <i class="fas fa-th-large"></i> Mosaic View
+                </button>
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search images by filename...">
+                    <button id="searchButton" class="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div class="stats-container">
+                    <i class="fas fa-camera"></i>
+                    <span id="imageCounter" class="count">0</span>
+                </div>
+            </div>
+        </header>
 
-                <button id="toggleMosaicView" class="button secondary">
-    <i class="fas fa-th-large"></i> Mosaic View
-</button>
+        <main>
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="map-overlay" id="mapOverlay">
+                    <div class="drag-text">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <div>Drop Images Here</div>
+                        <p>Drag and drop your geotagged photos to view them on the map</p>
+                    </div>
+                </div>
+            </div>
 
-                <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="Search images by filename...">
-                    <button id="searchButton" class="button">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                <div class="stats-container">
-                    <i class="fas fa-camera"></i>
-                    <span id="imageCounter" class="count">0</span>
-                </div>
-            </div>
-        </header>
+            <div id="imagePreview" class="image-preview hidden">
+                <div class="preview-header">
+                    <h3 id="previewTitle" class="preview-title">Image Preview</h3>
+                    <button id="closePreview" class="close-button" aria-label="Close preview">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="preview-content">
+                    <img id="previewImage" src="" alt="Preview">
+                </div>
+                <div class="preview-info">
+                    <div class="preview-info-item">
+                        <i class="fas fa-calendar"></i>
+                        <span id="imageTimestamp"></span>
+                    </div>
+                    <div class="preview-info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="imageCoordinates"></span>
+                    </div>
+                </div>
+            </div>
 
-        <main>
-            <div class="map-container">
-                <div id="map"></div>
-                <div class="map-overlay" id="mapOverlay">
-                    <div class="drag-text">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <div>Drop images here</div>
-                    </div>
-                </div>
-            </div>
+            <div id="mosaicPanel" class="mosaic-panel hidden">
+                <div class="panel-header">
+                    <h3><i class="fas fa-th"></i> Mosaic Analysis</h3>
+                    <button id="closeMosaicPanel" class="close-button">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="panel-content">
+                    <div class="mosaic-status">
+                        <div class="status-score">
+                            <div class="score-circle">
+                                <span id="suitabilityScore">0</span>
+                            </div>
+                            <div class="score-label">Mosaic<br>Suitability</div>
+                        </div>
+                        <div class="status-recommendation" id="mosaicRecommendation">
+                            Upload geotagged images to analyze mosaic potential.
+                        </div>
+                    </div>
 
-            <div id="imagePreview" class="image-preview hidden">
-                <div class="preview-header">
-                    <h3 id="previewTitle" class="preview-title">Image Preview</h3>
-                    <button id="closePreview" class="close-button" aria-label="Close preview">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="preview-content">
-                    <img id="previewImage" src="" alt="Preview">
-                </div>
-                <div class="preview-info">
-                    <div class="preview-info-item">
-                        <i class="fas fa-calendar"></i>
-                        <span id="imageTimestamp"></span>
-                    </div>
-                    <div class="preview-info-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span id="imageCoordinates"></span>
-                    </div>
-                </div>
-            </div>
+                    <div class="mosaic-metrics">
+                        <div class="metric-group">
+                            <div class="metric">
+                                <div class="metric-value" id="totalImagesValue">0</div>
+                                <div class="metric-label">Total Images</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="overlapGroupsValue">0</div>
+                                <div class="metric-label">Overlap Groups</div>
+                            </div>
+                        </div>
+                        <div class="metric-group">
+                            <div class="metric">
+                                <div class="metric-value" id="coverageValue">0 km²</div>
+                                <div class="metric-label">Coverage Area</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="densityValue">0</div>
+                                <div class="metric-label">Images/km²</div>
+                            </div>
+                        </div>
+                    </div>
 
-            <div id="mosaicPanel" class="mosaic-panel hidden">
-                <div class="panel-header">
-                    <h3><i class="fas fa-th"></i> Mosaic Analysis</h3>
-                    <button id="closeMosaicPanel" class="close-button">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="panel-content">
-                    <div class="mosaic-status">
-                        <div class="status-score">
-                            <div class="score-circle">
-                                <span id="suitabilityScore">0</span>
-                            </div>
-                            <div class="score-label">Mosaic<br>Suitability</div>
-                        </div>
-                        <div class="status-recommendation" id="mosaicRecommendation">
-                            Upload geotagged images to analyze mosaic potential.
-                        </div>
-                    </div>
+                    <div class="mosaic-details">
+                        <h4>Optimal Mosaic Settings</h4>
+                        <div class="details-row">
+                            <div class="detail-item">
+                                <div class="detail-label">Best Region</div>
+                                <div class="detail-value" id="bestRegionValue">—</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Overlap Coverage</div>
+                                <div class="detail-value" id="overlapCoverageValue">—</div>
+                            </div>
+                        </div>
+                        <div class="details-row">
+                            <div class="detail-item">
+                                <div class="detail-label">Optimal Zoom</div>
+                                <div class="detail-value" id="optimalZoomValue">—</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Estimated Size</div>
+                                <div class="detail-value" id="estimatedSizeValue">—</div>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div class="mosaic-metrics">
-                        <div class="metric-group">
-                            <div class="metric">
-                                <div class="metric-value" id="totalImagesValue">0</div>
-                                <div class="metric-label">Total Images</div>
-                            </div>
-                            <div class="metric">
-                                <div class="metric-value" id="overlapGroupsValue">0</div>
-                                <div class="metric-label">Overlap Groups</div>
-                            </div>
-                        </div>
-                        <div class="metric-group">
-                            <div class="metric">
-                                <div class="metric-value" id="coverageValue">0 km²</div>
-                                <div class="metric-label">Coverage Area</div>
-                            </div>
-                            <div class="metric">
-                                <div class="metric-value" id="densityValue">0</div>
-                                <div class="metric-label">Images/km²</div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="action-buttons">
+                        <button id="showOverlapGroups" class="button secondary">
+                            <i class="fas fa-object-group"></i> Show All Groups
+                        </button>
+                        <button id="selectOverlapGroup" class="button secondary">
+                            <i class="fas fa-list"></i> Select Group
+                        </button>
+                        <button id="showHeatmap" class="button secondary">
+                            <i class="fas fa-fire"></i> Show Density Heatmap
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
 
-                    <div class="mosaic-details">
-                        <h4>Optimal Mosaic Settings</h4>
-                        <div class="details-row">
-                            <div class="detail-item">
-                                <div class="detail-label">Best Region</div>
-                                <div class="detail-value" id="bestRegionValue">—</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Overlap Coverage</div>
-                                <div class="detail-value" id="overlapCoverageValue">—</div>
-                            </div>
-                        </div>
-                        <div class="details-row">
-                            <div class="detail-item">
-                                <div class="detail-label">Optimal Zoom</div>
-                                <div class="detail-value" id="optimalZoomValue">—</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Estimated Size</div>
-                                <div class="detail-value" id="estimatedSizeValue">—</div>
-                            </div>
-                        </div>
-                    </div>
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Processing images...</div>
+            <div id="processingStatus" class="processing-status">Extracting location data</div>
+            <div id="imageProcessCounter" class="image-counter"></div>
+        </div>
 
-                    <div class="action-buttons">
-                        <button id="showOverlapGroups" class="button secondary">
-                            <i class="fas fa-object-group"></i> Show All Groups
-                        </button>
-                        <button id="selectOverlapGroup" class="button secondary">
-                            <i class="fas fa-list"></i> Select Group
-                        </button>
-                        <button id="showHeatmap" class="button secondary">
-                            <i class="fas fa-fire"></i> Show Density Heatmap
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </main>
+        <div id="toast" class="toast">
+            <div class="toast-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="toast-content">
+                <div id="toastTitle" class="toast-title">Notification</div>
+                <div id="toastMessage" class="toast-message">This is a notification message</div>
+            </div>
+            <button id="toastClose" class="toast-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
 
-        <div id="loadingOverlay" class="loading-overlay hidden">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">Processing images...</div>
-            <div id="processingStatus" class="processing-status">Extracting location data</div>
-            <div id="imageProcessCounter" class="image-counter"></div>
-        </div>
+    <footer>
+        לשאלות / יצירת קשר: <a href="mailto:yehudaheller10@gmail.com"> Contact Yehuda Heller/a>
+    </footer>
 
-        <div id="toast" class="toast">
-            <div class="toast-icon">
-                <i class="fas fa-info-circle"></i>
-            </div>
-            <div class="toast-content">
-                <div id="toastTitle" class="toast-title">Notification</div>
-                <div id="toastMessage" class="toast-message">This is a notification message</div>
-            </div>
-            <button id="toastClose" class="toast-close">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
-    <!-- Added libraries for map export functionality -->
-    <script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="mosaic-analyzer.js"></script>
-    <script src="script.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
+    <script src="mosaic-analyzer.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
