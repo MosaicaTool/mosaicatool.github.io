@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js">
-
 </head>
 <body>
     <div class="container">
@@ -17,36 +16,41 @@
             <div class="header-top">
                 <h1><i class="fas fa-globe-americas"></i> GeoImage Explorer</h1>
                 <div class="app-info">
-                    <span class="badge">Free :)</span>
+                    <span class="badge">v1.0</span>
                     <span>Explore your photos on the map</span>
+
                 </div>
             </div>
+                    <div>Easily view your geotagged image collection on a map, extract image metadata, and gain insights into your photo locations.</div>
+                    <div> >>
+                    </div>
+
             <div class="toolbar">
                 <input type="file" id="imageInput" accept="image/*" multiple class="file-input" />
-                <label for="imageInput" class="button">
+                <label for="imageInput" class="button tooltip-trigger" data-tooltip="Upload geotagged images to view them on the map">
                     <i class="fas fa-images"></i> Load Images
                 </label>
-                <button id="analyzeMosaic" class="button analyze">
+                <button id="analyzeMosaic" class="button analyze tooltip-trigger" data-tooltip="Analyze your images for potential panorama/mosaic creation">
                     <i class="fas fa-th"></i> Analyze Mosaic
                 </button>
-                <button id="resetView" class="button secondary">
+                <button id="resetView" class="button secondary tooltip-trigger" data-tooltip="Reset map to default view">
                     <i class="fas fa-compress-arrows-alt"></i> Reset View
                 </button>
-                <button id="downloadMap" class="button secondary">
+                <button id="downloadMap" class="button secondary tooltip-trigger" data-tooltip="Download current map view as image">
                     <i class="fas fa-download"></i> Export Map
                 </button>
 
-                <button id="toggleMosaicView" class="button secondary">
-    <i class="fas fa-th-large"></i> Mosaic View
-</button>
+                <button id="toggleMosaicView" class="button secondary tooltip-trigger" data-tooltip="Switch between map and mosaic grid view">
+                    <i class="fas fa-th-large"></i> Mosaic View
+                </button>
 
                 <div class="search-container">
                     <input type="text" id="searchInput" placeholder="Search images by filename...">
-                    <button id="searchButton" class="button">
+                    <button id="searchButton" class="button tooltip-trigger" data-tooltip="Find specific images by name">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
-                <div class="stats-container">
+                <div class="stats-container tooltip-trigger" data-tooltip="Total number of loaded images">
                     <i class="fas fa-camera"></i>
                     <span id="imageCounter" class="count">0</span>
                 </div>
@@ -57,12 +61,12 @@
             <div class="map-container">
                 <div id="map"></div>
                 <div class="map-overlay" id="mapOverlay">
-    <div class="drag-text">
-        <i class="fas fa-cloud-upload-alt"></i>
-        <div>Drop Images Here</div>
-        <p>Drag and drop your geotagged photos to view them on the map</p>
-    </div>
-</div>
+                    <div class="drag-text">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <div>Drop Images Here</div>
+                        <p>Drag and drop your geotagged photos to view them on the map</p>
+                    </div>
+                </div>
             </div>
 
             <div id="imagePreview" class="image-preview hidden">
@@ -155,18 +159,20 @@
                     </div>
 
                     <div class="action-buttons">
-                        <button id="showOverlapGroups" class="button secondary">
+                        <button id="showOverlapGroups" class="button secondary tooltip-trigger" data-tooltip="Highlight areas where multiple images overlap">
                             <i class="fas fa-object-group"></i> Show All Groups
                         </button>
-                        <button id="selectOverlapGroup" class="button secondary">
+                        <button id="selectOverlapGroup" class="button secondary tooltip-trigger" data-tooltip="Choose a specific group of overlapping images">
                             <i class="fas fa-list"></i> Select Group
                         </button>
-                        <button id="showHeatmap" class="button secondary">
+                        <button id="showHeatmap" class="button secondary tooltip-trigger" data-tooltip="View image density across the map">
                             <i class="fas fa-fire"></i> Show Density Heatmap
                         </button>
                     </div>
                 </div>
             </div>
+
+            <!-- Welcome message component will be injected here by welcome-component.js -->
         </main>
 
         <div id="loadingOverlay" class="loading-overlay hidden">
@@ -189,15 +195,14 @@
             </button>
         </div>
     </div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
-    <!-- Added libraries for map export functionality -->
     <script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
     <script src="mosaic-analyzer.js"></script>
     <script src="script.js"></script>
+    <!-- Add welcome component script -->
+    <script src="welcome-component.js" type="module"></script>
 </body>
 </html>
