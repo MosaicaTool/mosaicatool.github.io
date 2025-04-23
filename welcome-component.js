@@ -173,6 +173,8 @@ function initWelcomeMessage() {
       transition: all 0.2s ease;
       border: none;
       min-width: 120px;
+      touch-action: manipulation; /* Improves touch response */
+      -webkit-tap-highlight-color: rgba(0,0,0,0); /* Removes tap highlight on iOS */
     }
 
     .welcome-button.primary {
@@ -180,7 +182,7 @@ function initWelcomeMessage() {
       color: white;
     }
 
-    .welcome-button.primary:hover {
+    .welcome-button.primary:hover, .welcome-button.primary:active {
       background-color: #3367d6;
     }
 
@@ -189,7 +191,7 @@ function initWelcomeMessage() {
       color: #3c4043;
     }
 
-    .welcome-button.secondary:hover {
+    .welcome-button.secondary:hover, .welcome-button.secondary:active {
       background-color: #e8eaed;
     }
 
@@ -244,9 +246,11 @@ function initWelcomeMessage() {
       cursor: pointer;
       z-index: 900;
       transition: all 0.2s ease;
+      touch-action: manipulation; /* Improves touch response */
+      -webkit-tap-highlight-color: rgba(0,0,0,0); /* Removes tap highlight on iOS */
     }
 
-    .help-button:hover {
+    .help-button:hover, .help-button:active {
       background-color: #3367d6;
       transform: scale(1.05);
     }
@@ -287,6 +291,11 @@ function initWelcomeMessage() {
       .welcome-button {
         padding: 10px 16px;
         min-width: 110px;
+      }
+
+      /* Ensure buttons are easily tappable on mobile */
+      .welcome-button, .help-button {
+        min-height: 44px; /* Apple's recommended minimum touch target size */
       }
     }
 
@@ -337,8 +346,8 @@ function initWelcomeMessage() {
       }
 
       .help-button {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         font-size: 20px;
         bottom: 15px;
         right: 15px;
@@ -362,28 +371,48 @@ function setupWelcomeEvents() {
     welcomeMessage.classList.add('hidden');
   }
 
-  // Handle welcome message buttons
-  getStartedButton.addEventListener('click', function() {
+  // Handle welcome message buttons with both click and touch events
+  // Get Started button
+  getStartedButton.addEventListener('click', handleGetStartedClick);
+  getStartedButton.addEventListener('touchend', function(e) {
+    e.preventDefault(); // Prevent default behavior
+    handleGetStartedClick();
+  });
+
+  function handleGetStartedClick() {
     welcomeMessage.style.opacity = '0';
     setTimeout(() => {
       welcomeMessage.classList.add('hidden');
       localStorage.setItem('geoImageExplorerVisited', 'true');
     }, 300);
+  }
+
+  // Watch Tutorial button
+  watchTutorialButton.addEventListener('click', handleWatchTutorialClick);
+  watchTutorialButton.addEventListener('touchend', function(e) {
+    e.preventDefault(); // Prevent default behavior
+    handleWatchTutorialClick();
   });
 
-  watchTutorialButton.addEventListener('click', function() {
+  function handleWatchTutorialClick() {
     // Here you would add code to show a tutorial or video
     alert('Not yet, but its easy! :).');
     // Then hide welcome message
     welcomeMessage.classList.add('hidden');
     localStorage.setItem('geoImageExplorerVisited', 'true');
-  });
+  }
 
   // Help button shows welcome message again
-  helpButton.addEventListener('click', function() {
+  helpButton.addEventListener('click', handleHelpButtonClick);
+  helpButton.addEventListener('touchend', function(e) {
+    e.preventDefault(); // Prevent default behavior
+    handleHelpButtonClick();
+  });
+
+  function handleHelpButtonClick() {
     welcomeMessage.classList.remove('hidden');
     welcomeMessage.style.opacity = '1';
-  });
+  }
 }
 
 // Function to set up tooltips for interface elements
@@ -391,8 +420,20 @@ function setupTooltips() {
   const tooltipElement = document.getElementById('tooltip');
   const tooltipTriggers = document.querySelectorAll('.tooltip-trigger');
 
+  // Detect if user is on a touch device
+  let isTouchDevice = false;
+
+  window.addEventListener('touchstart', function onFirstTouch() {
+    isTouchDevice = true;
+    // Remove event listener after detection
+    window.removeEventListener('touchstart', onFirstTouch);
+  }, false);
+
   tooltipTriggers.forEach(trigger => {
+    // Mouse events for desktop
     trigger.addEventListener('mouseenter', function(e) {
+      if (isTouchDevice) return; // Skip on touch devices
+
       const tooltip = this.getAttribute('data-tooltip');
       if (!tooltip) return;
 
@@ -400,30 +441,17 @@ function setupTooltips() {
       tooltipElement.style.opacity = '1';
 
       // Position tooltip
-      const rect = this.getBoundingClientRect();
-      const tooltipHeight = tooltipElement.offsetHeight;
-      const tooltipWidth = tooltipElement.offsetWidth;
-
-      tooltipElement.style.left = (rect.left + (rect.width / 2) - (tooltipWidth / 2)) + 'px';
-      tooltipElement.style.top = (rect.top - tooltipHeight - 10) + 'px';
-
-      // Add direction class
-      tooltipElement.className = 'tooltip';
-      if (rect.top < tooltipHeight + 20) {
-        tooltipElement.classList.add('top');
-        tooltipElement.style.top = (rect.bottom + 10) + 'px';
-      }
+      positionTooltip(this, tooltipElement);
     });
 
     trigger.addEventListener('mouseleave', function() {
+      if (isTouchDevice) return; // Skip on touch devices
       tooltipElement.style.opacity = '0';
     });
-  });
 
-  // Additional touch support for mobile devices
-  tooltipTriggers.forEach(trigger => {
+    // Touch events for mobile
     trigger.addEventListener('touchstart', function(e) {
-      e.preventDefault(); // Prevent default touch action
+      // Don't prevent default here as it will block buttons from working
       const tooltip = this.getAttribute('data-tooltip');
       if (!tooltip) return;
 
@@ -431,19 +459,7 @@ function setupTooltips() {
       tooltipElement.style.opacity = '1';
 
       // Position tooltip
-      const rect = this.getBoundingClientRect();
-      const tooltipHeight = tooltipElement.offsetHeight;
-      const tooltipWidth = tooltipElement.offsetWidth;
-
-      tooltipElement.style.left = (rect.left + (rect.width / 2) - (tooltipWidth / 2)) + 'px';
-      tooltipElement.style.top = (rect.top - tooltipHeight - 10) + 'px';
-
-      // Add direction class
-      tooltipElement.className = 'tooltip';
-      if (rect.top < tooltipHeight + 20) {
-        tooltipElement.classList.add('top');
-        tooltipElement.style.top = (rect.bottom + 10) + 'px';
-      }
+      positionTooltip(this, tooltipElement);
 
       // Hide tooltip after a delay on mobile
       setTimeout(() => {
@@ -451,6 +467,23 @@ function setupTooltips() {
       }, 2000);
     });
   });
+
+  // Helper function for positioning tooltips
+  function positionTooltip(triggerElement, tooltipElement) {
+    const rect = triggerElement.getBoundingClientRect();
+    const tooltipHeight = tooltipElement.offsetHeight;
+    const tooltipWidth = tooltipElement.offsetWidth;
+
+    tooltipElement.style.left = (rect.left + (rect.width / 2) - (tooltipWidth / 2)) + 'px';
+    tooltipElement.style.top = (rect.top - tooltipHeight - 10) + 'px';
+
+    // Add direction class
+    tooltipElement.className = 'tooltip';
+    if (rect.top < tooltipHeight + 20) {
+      tooltipElement.classList.add('top');
+      tooltipElement.style.top = (rect.bottom + 10) + 'px';
+    }
+  }
 }
 
 // Main function to initialize the welcome component
