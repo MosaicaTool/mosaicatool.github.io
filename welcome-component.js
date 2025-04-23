@@ -70,7 +70,7 @@ function initWelcomeMessage() {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 80%;
+      width: 90%;
       max-width: 650px;
       background-color: rgba(255, 255, 255, 0.95);
       border-radius: 12px;
@@ -83,6 +83,8 @@ function initWelcomeMessage() {
       gap: 18px;
       opacity: 1;
       transition: opacity 0.3s ease;
+      overflow-y: auto;
+      max-height: 90vh;
     }
 
     .welcome-container.hidden {
@@ -95,6 +97,7 @@ function initWelcomeMessage() {
       justify-content: center;
       gap: 12px;
       margin-bottom: 10px;
+      flex-wrap: wrap;
     }
 
     .welcome-header i {
@@ -106,6 +109,7 @@ function initWelcomeMessage() {
       margin: 0;
       color: #333;
       font-weight: 600;
+      font-size: 24px;
     }
 
     .welcome-description {
@@ -136,6 +140,7 @@ function initWelcomeMessage() {
       color: #4285f4;
       font-size: 20px;
       margin-top: 2px;
+      flex-shrink: 0;
     }
 
     .feature-text h4 {
@@ -156,6 +161,7 @@ function initWelcomeMessage() {
       justify-content: center;
       gap: 12px;
       margin-top: 10px;
+      flex-wrap: wrap;
     }
 
     .welcome-button {
@@ -166,6 +172,7 @@ function initWelcomeMessage() {
       cursor: pointer;
       transition: all 0.2s ease;
       border: none;
+      min-width: 120px;
     }
 
     .welcome-button.primary {
@@ -243,6 +250,100 @@ function initWelcomeMessage() {
       background-color: #3367d6;
       transform: scale(1.05);
     }
+
+    /* Media queries for mobile responsiveness */
+    @media (max-width: 768px) {
+      .welcome-container {
+        width: 95%;
+        padding: 20px 16px;
+        gap: 12px;
+      }
+
+      .welcome-header h2 {
+        font-size: 20px;
+      }
+
+      .welcome-description {
+        font-size: 14px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .feature-item {
+        padding: 10px;
+      }
+
+      .feature-text h4 {
+        font-size: 15px;
+      }
+
+      .feature-text p {
+        font-size: 13px;
+      }
+
+      .welcome-button {
+        padding: 10px 16px;
+        min-width: 110px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .welcome-container {
+        padding: 16px 12px;
+        gap: 10px;
+      }
+
+      .welcome-header i {
+        font-size: 26px;
+      }
+
+      .welcome-header h2 {
+        font-size: 18px;
+      }
+
+      .welcome-description {
+        font-size: 13px;
+        margin-bottom: 5px;
+      }
+
+      .feature-item {
+        padding: 8px;
+        gap: 8px;
+      }
+
+      .feature-item i {
+        font-size: 18px;
+      }
+
+      .feature-text h4 {
+        font-size: 14px;
+      }
+
+      .feature-text p {
+        font-size: 12px;
+      }
+
+      .welcome-buttons {
+        gap: 8px;
+      }
+
+      .welcome-button {
+        padding: 8px 14px;
+        font-size: 13px;
+        min-width: 100px;
+      }
+
+      .help-button {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        bottom: 15px;
+        right: 15px;
+      }
+    }
   `;
   document.head.appendChild(styleElement);
 }
@@ -316,6 +417,38 @@ function setupTooltips() {
 
     trigger.addEventListener('mouseleave', function() {
       tooltipElement.style.opacity = '0';
+    });
+  });
+
+  // Additional touch support for mobile devices
+  tooltipTriggers.forEach(trigger => {
+    trigger.addEventListener('touchstart', function(e) {
+      e.preventDefault(); // Prevent default touch action
+      const tooltip = this.getAttribute('data-tooltip');
+      if (!tooltip) return;
+
+      tooltipElement.textContent = tooltip;
+      tooltipElement.style.opacity = '1';
+
+      // Position tooltip
+      const rect = this.getBoundingClientRect();
+      const tooltipHeight = tooltipElement.offsetHeight;
+      const tooltipWidth = tooltipElement.offsetWidth;
+
+      tooltipElement.style.left = (rect.left + (rect.width / 2) - (tooltipWidth / 2)) + 'px';
+      tooltipElement.style.top = (rect.top - tooltipHeight - 10) + 'px';
+
+      // Add direction class
+      tooltipElement.className = 'tooltip';
+      if (rect.top < tooltipHeight + 20) {
+        tooltipElement.classList.add('top');
+        tooltipElement.style.top = (rect.bottom + 10) + 'px';
+      }
+
+      // Hide tooltip after a delay on mobile
+      setTimeout(() => {
+        tooltipElement.style.opacity = '0';
+      }, 2000);
     });
   });
 }
